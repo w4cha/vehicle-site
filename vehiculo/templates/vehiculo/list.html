@@ -1,0 +1,76 @@
+{% extends "vehiculo/base.html" %}
+{% block title %}
+Listado de Vehículos
+{% endblock title %}
+{% block content %}
+<main>
+    <div class="w-100 text-center">
+        {% if messages %}
+        {% for message in messages %}
+        <!--message.tags return the type of message success error warnings, etc-->
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message|safe }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    {% if list_of_vehicles %}
+    <div class="mx-2 overflow-auto">
+        <h3>Listado de vehículos</h3>
+        <table class="table">
+            <thead class="table-dark">
+                <tr>
+                    {% for key in header %}
+                        <th>{{ key|title }}</th>
+                    {% endfor %}
+                    {% if perms.vehiculo.change_vehículo %}
+                        <th>Editar</th>
+                    {% endif %}
+                    {% if perms.vehiculo.delete_vehículo %}
+                        <th>Eliminar</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in list_of_vehicles %}
+                <tr>
+                    <!--get_<nombre_campo_modelo>_display para obtener el valor de un campo
+                        si este no es fácilmente entendible para el usuario recomendable en
+                        campos que usan el argumento choice -->
+                    <td>{{ entry.get_marca_display }}</td>
+                    <td>{{ entry.modelo }}</td>
+                    <td>{{ entry.carrocería }}</td>
+                    <td>{{ entry.motor }}</td>
+                    <td>{{ entry.get_categoría_display }}</td>
+                    <td>{{ entry.precio }}</td>
+                    <td>{{ entry.condición }}</td>
+                    {% if perms.vehiculo.change_vehículo %}
+                        <td><button type="button" class="btn btn-primary" onclick="get_form('update', '{{ entry.pk }}');">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                              </svg>
+                        </button></td>
+                    {% endif %}
+                    {% if perms.vehiculo.delete_vehículo %}
+                        <td><button type="button" class="btn btn-danger" onclick="get_form('delete', '{{ entry.pk }}');">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                              </svg>
+                        </button></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+        {% else %}
+        <div class="text-center">
+        <h3>No hay vehículos disponibles</h3>
+        </div>
+        {% endif %}
+</main>
+<dialog id="change_target">
+</dialog>
+{% endblock content %}

@@ -1,0 +1,45 @@
+{% extends "vehiculo/base.html" %}
+{% block title %}
+Agregar Vehículo
+{% endblock title %}
+{% block content %}
+<div class="d-flex flex-column align-items-center">
+    <div class="w-100 text-center">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message|safe }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <h1>Nueva Entrada</h1>
+    <form method="POST" class="d-flex flex-column align-items-start">
+        <!-- token seguridad -->
+        {% csrf_token %}
+        <!-- itera sobre los elementos de la form de django -->
+        {% for field in form %}
+        <div class="my-2">
+            {% if field.errors %}
+            <div class="alert alert-danger text-center" role="alert">
+                {% for error in field.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {{ field.label_tag }} {{ field }}
+            {% if field.help_text %}
+            <p class="help my-1 text-end" id="{{ field.auto_id }}_helptext">
+                {{ field.help_text}}
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div class="align-self-center">
+            <input type="submit" value="Crear" class="btn btn-secondary btn-lg">
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

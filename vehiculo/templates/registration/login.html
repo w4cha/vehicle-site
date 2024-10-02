@@ -1,0 +1,39 @@
+{% extends "vehiculo/base.html" %}
+{% block title %}
+Ingresar
+{% endblock title %}
+{% block content %}
+<div class="d-flex flex-column align-items-center">
+    <h1>Iniciar sesión</h1>
+    <div class="my-1">
+        <small>Si no tienes una cuenta <a href="{% url 'vehiculo:sign-up' %}" class="link-body-emphasis link-offset-2 link-underline-opacity-25 link-underline-opacity-75-hover">
+            regístrate</a>
+        </small>
+    </div>
+    <form method="POST" class="d-flex flex-column align-items-start">
+        {% csrf_token %}
+        {% if form.errors %}
+        <div class="alert alert-danger text-center" role="alert">
+            {% for error in form.non_field_errors %}
+                {{ error|safe }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% for field in form %}
+            <div class="my-2">
+                <p>{{ field.label_tag }}</p>
+                <div>{{ field }}</div>
+                {% if field.help_text %} 
+                    <p class="help my-1 text-end" id="{{ field.auto_id }}_helptext">
+                        {{ field.help_text}}
+                    </p>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="align-self-center">
+            <input type="submit" value="Entrar" class="btn btn-secondary btn-lg">
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

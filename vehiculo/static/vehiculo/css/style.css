@@ -1,0 +1,40 @@
+:root {
+    --close-color: #ec3f3f;
+    --button-default : #6c757d;
+    --button-text: #ffffff;
+}
+
+#change_target {
+    top: 20%;
+    border-color: black;
+    border-width: 3px;
+}
+
+#edit_vehicle {
+    width: clamp(30vw, 40vw, 60vw);
+}
+
+#delete_vehicle {
+    width: clamp(15vw, 20vw, 25vw);
+}
+
+.limit {
+    width: clamp(8vw, 12vw, 15vw);
+    margin: auto;
+}
+
+.cerrar {
+    background-color:  var(--button-default);
+    border: 3px, solid, black;
+    color: var(--button-text);
+    border-radius: 50%;
+    min-width: 30px;
+    position: absolute;
+    top: 0%;
+    right: 0%;
+    transform: translate(50%, -50%);
+}
+
+.cerrar:hover {
+    background-color: var(--close-color);
+}
