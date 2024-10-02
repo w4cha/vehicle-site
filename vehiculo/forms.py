@@ -1,9 +1,17 @@
 from django import forms
 from .models import Vehículo
+from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as alt
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+
+
+class FileUploadForm(forms.Form):
+
+    file_name = forms.ImageField(label="Subir imagen del vehículo", 
+                                help_text="archivo jpg o png", allow_empty_file=False,
+                                validators=[FileExtensionValidator(allowed_extensions=["png", "jpg", "jpeg",]),])
 
 # para que aparezcan errores si el usuario o contraseña es incorrecto
 class LoginForm(AuthenticationForm):

@@ -2,6 +2,7 @@
 # Create your models here.
 from django.db import models
 from django.core.validators import MaxValueValidator
+from pathlib import Path
 
 class Vehículo(models.Model):
 
@@ -53,6 +54,13 @@ class Vehículo(models.Model):
                 "Puede ver la lista de vehículos disponibles",
             )
         ]
+
+    # right way of overriding methods
+    def save(self, *arg, **kwargs):
+       new_directory = Path(fr"{Path(__file__).parent}\static\vehiculo\img\{self.marca}\{self.carrocería}")
+       if not new_directory.is_dir():
+           new_directory.mkdir()
+       super().save(*arg, **kwargs)
 
     def __str__(self) -> str:
         return (f"Marca: {self.marca}, Modelo: {self.modelo}, Carrocería: {self.carrocería}, "

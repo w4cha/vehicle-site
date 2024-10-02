@@ -1,18 +1,21 @@
 from django.http.response import HttpResponse
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views import generic
 from django.views.generic.edit import CreateView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import views as auth_views, authenticate, login
 from django.db.models import Case, When, Value
-from .forms import VehicleForm, LoginForm, CreateUserForm
+from .forms import VehicleForm, LoginForm, CreateUserForm, FileUploadForm
 from django.contrib import messages
 from .models import Vehículo
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import Permission
+from django.contrib.auth.decorators import login_required
+from pathlib import Path
+from shutil import rmtree
 
 # Create your views here.
 
@@ -145,7 +148,8 @@ class NewUser(SuccessMessageMixin, CreateView):
 
     def get_success_url(self):
         return reverse("vehiculo:index")
-    
+
+@login_required(login_url=reverse_lazy("vehiculo:login"))   
 def update_vehiculo(request, pk):
     
     # so you can write the url to update manually
@@ -171,12 +175,15 @@ def update_vehiculo(request, pk):
     else:
         raise PermissionDenied
     
-
+@login_required(login_url=reverse_lazy("vehiculo:login"))
 def delete_vehiculo(request, pk):
     if request.method == "POST":
         delete_vehiculo = get_object_or_404(Vehículo, pk=pk)
         new_entry = model_to_dict(instance=delete_vehiculo, exclude=["id", "creación", "modificación",])
         new_entry = ", ".join([f"{key}: {value}" for key, value in new_entry.items()])
+        gallery = Path(fr"{Path(__file__).parent}\static\vehiculo\img\{delete_vehiculo.marca}\{delete_vehiculo.carrocería}")
+        if gallery.is_dir():
+            rmtree(gallery)
         delete_vehiculo.delete()
         messages.success(request, f"Entrada borrada exitosamente<br> {new_entry}")
         return HttpResponse(content=reverse("vehiculo:list"), status = 302)
@@ -185,3 +192,25 @@ def delete_vehiculo(request, pk):
         return render(request, "vehiculo/delete.html", context)
     else:
         raise PermissionDenied
+    
+@login_required(login_url=reverse_lazy("vehiculo:login"))
+def gallery_view(request, carrocería):
+    if request.method == "POST":
+        ...
+    elif request.method == "GET":
+        vehicle_gallery = get_object_or_404(Vehículo, carrocería=carrocería)
+
+    else:
+        raise PermissionDenied
+    
+
+@login_required(login_url=reverse_lazy("vehiculo:login"))
+def gallery_update(request, pk):
+    if request.method == "POST":
+        vehicle_gallery = get_object_or_404(Vehículo, pk=pk)
+        form = FileUploadForm(request.FILES)
+        if form.is_valid():
+            path_to_upload = Path(fr"{Path(__file__).parent}\static\vehiculo\img\{vehicle_gallery.marca}\{vehicle_gallery.carrocería}")
+            messages.success(request, "imagen subida exitosamente")
+            # how to manage redirect ajax pass response with url and redirect in js
+            return HttpResponse(content=reverse("vehiculo:list"), status = 302)
