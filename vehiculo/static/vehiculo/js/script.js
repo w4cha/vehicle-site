@@ -46,8 +46,8 @@ async function send_data(pk) {
 }
 
 
-async function delete_vehicle(value) {
-    let request = await fetch("/vehiculo/delete/" + Number(value), { method: "POST", credentials: 'same-origin',
+async function delete_resource(value, type) {
+    let request = await fetch(`/vehiculo/${type}/` + Number(value), { method: "POST", credentials: 'same-origin',
         headers: {
             "X-CSRFToken": getCookie("csrftoken"),
         },}) 
@@ -57,4 +57,3 @@ async function delete_vehicle(value) {
         window.location.href = answer;
     }
 }
-

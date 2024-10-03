@@ -1,0 +1,13 @@
+# txt files
+*.txt
+#db
+*.db
+*.sqlite3
+#zip
+*.zip
+#cache
+*.pyc
+# images
+*.jpg
+*.gif
+*.png

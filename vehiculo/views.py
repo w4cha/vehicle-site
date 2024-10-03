@@ -1,4 +1,5 @@
-from django.http.response import HttpResponse
+from pathlib import Path
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -7,15 +8,13 @@ from django.views.generic.edit import CreateView
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import views as auth_views, authenticate, login
-from django.db.models import Case, When, Value
+from django.db.models import Case, When, Value, Q
 from .forms import VehicleForm, LoginForm, CreateUserForm, FileUploadForm
 from django.contrib import messages
-from .models import Vehículo
+from .models import Vehículo, VehículoGalería
 from django.forms.models import model_to_dict
 from django.contrib.auth.models import Permission
 from django.contrib.auth.decorators import login_required
-from pathlib import Path
-from shutil import rmtree
 
 # Create your views here.
 
@@ -48,18 +47,34 @@ class VehicleList(PermissionRequiredMixin, generic.ListView):
     # then es el valor que se va a pasar cuando se cumpla la condicional
     # condición= es el nombre del Case para referirse a el en el template
     def get_queryset(self):
-        query = Vehículo.objects.all().order_by('precio').annotate(condición=Case(
-                When(precio__gte=0, precio__lt=10_000, then=Value("Bajo")),
-                When(precio__gte=10_000, precio__lt=30_000, then=Value("Medio")),
-                default=Value("Alto")),)
+        if (search := self.request.GET.get("resultados", False)):
+            options = {val.lower(): key for key, val in Vehículo.MARKS.items()}
+            both = search.split(";", 1)
+            if len(both) == 2:
+                v_marca, v_modelo = both
+                partial = Q(marca=options.get(v_marca.lower(), "-")) & Q(modelo__icontains=v_modelo) 
+
+            else:
+                v_marca = v_modelo = search
+                partial = Q(marca=options.get(v_marca.lower(), "-")) | Q(modelo__icontains=v_modelo) 
+            query = Vehículo.objects.filter(partial).order_by('precio').annotate(condición=Case(
+                    When(precio__gte=0, precio__lt=10_000, then=Value("Bajo")),
+                    When(precio__gte=10_000, precio__lt=30_000, then=Value("Medio")),
+                    default=Value("Alto")),)
+        else:
+            query = Vehículo.objects.all().order_by('precio').annotate(condición=Case(
+                    When(precio__gte=0, precio__lt=10_000, then=Value("Bajo")),
+                    When(precio__gte=10_000, precio__lt=30_000, then=Value("Medio")),
+                    default=Value("Alto")),)
         return query
     
     # para pasar datos extras al template en este caso tomamos
     # los nombres de los campos o atributos del modelo para usarlos como encabezado de tabla
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # django creates an aditional field to the model related to this one
         context["header"] = [field.verbose_name for field in Vehículo._meta.get_fields() 
-                             if field.name not in("id", "creación", "modificación")]
+                             if field.name not in("id", "creación", "modificación", "vehículogalería")]
         context["header"].extend(["Condición de precio",])
         return context
 
@@ -105,7 +120,7 @@ class VehicleCreateView(PermissionRequiredMixin, CreateView):
     def get_success_url(self) -> str:
         new_entry = model_to_dict(instance=get_object_or_404(Vehículo, pk=self.object.id), exclude=["id", "creación", "modificación",])
         new_entry = ", ".join([f"{key}: {value}" for key, value in new_entry.items()])
-        messages.success(self.request, f"Entrada creada exitosamente<br> {new_entry}")
+        messages.success(self.request, f"Entrada creada exitosamente<br> {new_entry}", "éxito")
         return reverse("vehiculo:add-vehicle")
 
     
@@ -166,7 +181,7 @@ def update_vehiculo(request, pk):
         form = VehicleForm(request.POST, instance=edit_vehiculo)
         if form.is_valid():
             form.save()
-            messages.success(request, "entrada actualizada exitosamente")
+            messages.success(request, "entrada actualizada exitosamente", "éxito")
             # how to manage redirect ajax pass response with url and redirect in js
             return HttpResponse(content=reverse("vehiculo:list"), status = 302)
         else:
@@ -179,13 +194,15 @@ def update_vehiculo(request, pk):
 def delete_vehiculo(request, pk):
     if request.method == "POST":
         delete_vehiculo = get_object_or_404(Vehículo, pk=pk)
-        new_entry = model_to_dict(instance=delete_vehiculo, exclude=["id", "creación", "modificación",])
-        new_entry = ", ".join([f"{key}: {value}" for key, value in new_entry.items()])
-        gallery = Path(fr"{Path(__file__).parent}\static\vehiculo\img\{delete_vehiculo.marca}\{delete_vehiculo.carrocería}")
-        if gallery.is_dir():
-            rmtree(gallery)
+        old_entry = model_to_dict(instance=delete_vehiculo, exclude=["id", "creación", "modificación",])
+        old_entry["marca"] = delete_vehiculo.get_marca_display()
+        old_entry["categoría"] = delete_vehiculo.get_categoría_display()
+        old_entry = ", ".join([f"{key}: {value}" for key, value in old_entry.items()])
+        related_gallery = VehículoGalería.objects.all().filter(vehículo=pk)
+        for entry in related_gallery:
+            Path(entry.imágenes.path).unlink()
         delete_vehiculo.delete()
-        messages.success(request, f"Entrada borrada exitosamente<br> {new_entry}")
+        messages.success(request, f"Entrada borrada exitosamente<br> {old_entry}", "éxito")
         return HttpResponse(content=reverse("vehiculo:list"), status = 302)
     elif request.method == "GET" and request.headers.get("X-Csrftoken", False):
         context = {"entry": pk}
@@ -194,23 +211,58 @@ def delete_vehiculo(request, pk):
         raise PermissionDenied
     
 @login_required(login_url=reverse_lazy("vehiculo:login"))
-def gallery_view(request, carrocería):
-    if request.method == "POST":
-        ...
-    elif request.method == "GET":
-        vehicle_gallery = get_object_or_404(Vehículo, carrocería=carrocería)
+def gallery_view(request, pk):
+    if "vehiculo.view_vehículogalería" not in request.user.get_all_permissions():
+        raise PermissionDenied
+    # global context
+    try:
+        current_element = Vehículo.objects.get(pk=pk)
+    except Vehículo.DoesNotExist:
+        return HttpResponseRedirect(redirect_to=reverse(f"vehiculo:list"), status = 302)
+    vehicle_gallery = VehículoGalería.objects.all().filter(vehículo=pk)
+    verbose_mark = current_element.get_marca_display()
+    current = model_to_dict(instance=current_element, exclude=["id", "creación", "modificación", "categoría",])
+    current["marca"] = verbose_mark
+    if request.method == "GET":
+        # if the user tries to manually enter a gallery without elements
+        form = FileUploadForm()
+        context = {"gallery": vehicle_gallery, "form": form, "entry": current}
+        return render(request, "vehiculo/gallery.html", context, status=200)
+    elif request.method == "POST":
+        if "vehiculo.add_vehículogalería" not in request.user.get_all_permissions():
+            raise PermissionDenied
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            total_entries_images = VehículoGalería.objects.all().filter(vehículo=pk).count()
+            if total_entries_images < 5:
+                messages.success(request, "imagen subida exitosamente", "éxito")
+                vehicle_img = form.save(commit=False)
+                vehicle_img.vehículo = get_object_or_404(Vehículo, pk=pk)
+                vehicle_img.save()
+                return HttpResponseRedirect(redirect_to=reverse(f"vehiculo:gallery", kwargs={"pk": pk}), status = 302)
 
+            else:
+                messages.error(request, f"se supero el número máximo de imágenes por entrada de {total_entries_images}", "error")
+                return HttpResponseRedirect(redirect_to=reverse(f"vehiculo:gallery", kwargs={"pk": pk}), status = 302)
+
+            # how to manage redirect ajax pass response with url and redirect in js
+        context = {"gallery": vehicle_gallery, "form": form, "entry": current}
+        return render(request, "vehiculo/gallery.html", context, status=200)
     else:
         raise PermissionDenied
     
-
 @login_required(login_url=reverse_lazy("vehiculo:login"))
-def gallery_update(request, pk):
-    if request.method == "POST":
-        vehicle_gallery = get_object_or_404(Vehículo, pk=pk)
-        form = FileUploadForm(request.FILES)
-        if form.is_valid():
-            path_to_upload = Path(fr"{Path(__file__).parent}\static\vehiculo\img\{vehicle_gallery.marca}\{vehicle_gallery.carrocería}")
-            messages.success(request, "imagen subida exitosamente")
-            # how to manage redirect ajax pass response with url and redirect in js
-            return HttpResponse(content=reverse("vehiculo:list"), status = 302)
+def delete_img(request, pk):
+   if request.method == "POST":
+        if "vehiculo.delete_vehículogalería" not in request.user.get_all_permissions():
+            raise PermissionDenied
+        # se puede acceder a los campos directamente del objeto relacionado
+        delete_img = get_object_or_404(VehículoGalería, pk=pk)
+        
+        Path(delete_img.imágenes.path).unlink()
+        delete_img.delete()
+        return HttpResponse(content=reverse(f"vehiculo:gallery", kwargs={"pk": delete_img.vehículo.pk}), status = 302)
+   else:
+       raise PermissionDenied
+
+    

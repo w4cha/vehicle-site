@@ -38,3 +38,24 @@
 .cerrar:hover {
     background-color: var(--close-color);
 }
+
+.gallery {
+    margin: 5px;
+    float: left;
+    width: 250px;
+  }
+  
+  .gallery img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .desc {
+    padding: 15px;
+  }
+
+  #búsqueda {
+    position: absolute;
+    top: 11%;
+    right: 1%;
+  }

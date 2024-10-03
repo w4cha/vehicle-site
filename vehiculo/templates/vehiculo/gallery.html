@@ -1,0 +1,81 @@
+{% extends "vehiculo/base.html" %}
+{% block title %}
+Galería imágenes
+{% endblock title %}
+{% block content %}
+<main>
+    <div class="w-100 text-center">
+        {% if messages %}
+        {% for message in messages %}
+        <!--message.tags return the type of message success error warnings, etc-->
+        {% if 'éxito' in message.extra_tags %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {% else %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {% endif %}
+                {{ message|safe }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+        <div>
+            {% if entry %}
+            <div class="mx-3 text-center">
+                <h4>
+                    <!--we do no use () on functions calls-->
+                    {% for key, value in entry.items %}
+                    {{ key }}:
+                    {{ value }}
+                    {% endfor %}
+                </h4>
+            </div>
+            {% endif %}
+        </div>
+        {% if gallery %}
+        <h1 class="text-center">
+            Galería de imágenes
+        </h1>
+        <div class="d-flex flex-row justify-content-evenly flex-wrap">
+            {% for entry in gallery %}
+            <div class="gallery">
+                <a target="_blank" href="{{ entry.imágenes.url }}">
+                    <img src="{{ entry.imágenes.url }}" alt="{{ entry.imágenes.name }}" width="600" height="400">
+                </a>
+                <div class="text-center">
+                    <div class="desc">{{ entry.descripción }}</div>
+                    {% if perms.vehiculo.delete_vehículogalería %}
+                    <button class="btn btn-secondary btn-lg mb-1" onclick="delete_resource('{{ entry.id }}', 'del-img')">borrar</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center">
+            <h3>No hay imágenes disponibles</h3>
+        </div>
+        {% endif %}
+        {% if perms.vehiculo.add_vehículogalería %}
+        <form method="POST" enctype="multipart/form-data" action="" class="d-flex flex-column my-2 align-items-center">
+            {% csrf_token %}
+            {% for field in form %}
+            {% if field.errors %}
+            <div class="alert alert-danger text-center" role="alert">
+                {% for error in field.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            {{ field.label_tag }} {{ field }}
+            {% if field.help_text %}
+            <p class="help my-1" id="{{ field.auto_id }}_helptext">
+                {{ field.help_text}}
+            </p>
+            {% endif %}
+            {% endfor %}
+            <input type="submit" value="Subir archivo" class="btn btn-secondary btn-lg my-1">
+        </form>
+</main>
+{% endif %}
+{% endblock content %}

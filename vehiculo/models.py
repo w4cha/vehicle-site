@@ -2,7 +2,7 @@
 # Create your models here.
 from django.db import models
 from django.core.validators import MaxValueValidator
-from pathlib import Path
+from django.core.validators import FileExtensionValidator
 
 class Vehículo(models.Model):
 
@@ -55,14 +55,22 @@ class Vehículo(models.Model):
             )
         ]
 
-    # right way of overriding methods
-    def save(self, *arg, **kwargs):
-       new_directory = Path(fr"{Path(__file__).parent}\static\vehiculo\img\{self.marca}\{self.carrocería}")
-       if not new_directory.is_dir():
-           new_directory.mkdir()
-       super().save(*arg, **kwargs)
-
     def __str__(self) -> str:
-        return (f"Marca: {self.marca}, Modelo: {self.modelo}, Carrocería: {self.carrocería}, "
-                f"Motor: {self.motor}, Categoría: {self.categoría}, Precio: {self.precio}, "
-                f"Creación entrada: {self.creación}: Ultima modificación: {self.modificación}")
+        return (f"Marca: {self.get_marca_display()}, Modelo: {self.modelo}, Carrocería: {self.carrocería}, "
+                f"Motor: {self.motor}")
+
+
+class VehículoGalería(models.Model):
+
+    vehículo = models.ForeignKey(Vehículo, on_delete=models.CASCADE)
+
+    descripción = models.CharField(verbose_name="descripción imagen", max_length=150, null=False, error_messages="solo hasta 150 caracteres")
+
+    imágenes = models.ImageField(verbose_name="imágenes vehículo", upload_to="vehículo", 
+                                help_text="archivo jpg, png o gif", null=False,
+                                validators=[FileExtensionValidator(allowed_extensions=["png", "jpg", "jpeg", "gif",], 
+                                                                   message="formatos soportados: png, jpg, jpeg o gif")])
+    
+    def __str__(self) -> str:
+        return f"Vehículo relacionada: {self.vehículo}, Imagen: {self.imágenes.name}"
+
