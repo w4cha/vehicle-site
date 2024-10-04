@@ -134,6 +134,13 @@ class LogUserIn(auth_views.LoginView):
     # defino la clase de forma a usar desde forms.py
     authentication_form = LoginForm
 
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().get(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(redirect_to=reverse(f"vehiculo:index"), status = 302)
+    
+
 
 class LogUserOut(auth_views.LogoutView):
 
@@ -148,6 +155,13 @@ class NewUser(SuccessMessageMixin, CreateView):
     template_name = 'registration/signup.html'
 
     success_message = "usuario creado exitosamente"
+
+    # this is how get method is overwritten in class view
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().get(request, *args, **kwargs)
+        else:
+            return HttpResponseRedirect(redirect_to=reverse(f"vehiculo:index"), status = 302)
 
     # necessary to log user in after creation
     def form_valid(self, form):
