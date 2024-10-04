@@ -17,12 +17,14 @@ Listado de Vehículos
     </div>
     {% if list_of_vehicles %}
     <div class="mx-2 overflow-auto">
-        <h3>Listado de vehículos</h3>
-        <form action="" method="GET" id="búsqueda">
-            <input name="resultados" type="text" placeholder="Buscar marca o vehículo" id="vehículo-resultado">
-            <button class="btn btn-secondary" onclick="search_vehicle('búsqueda');">Buscar</button>
-          </form>
-        <table class="table my-3">
+        <div class="d-flex flex-row flex-wrap mt-2">
+            <h3 class="me-auto">Listado de vehículos</h3>
+            <form action="" method="GET" id="búsqueda">
+                <input name="resultados" type="text" placeholder="Buscar marca o vehículo" id="vehículo-resultado">
+                <button class="btn btn-secondary" onclick="search_vehicle('búsqueda');">Buscar</button>
+            </form>
+        </div>
+        <table class="table my-2">
             <thead class="table-dark">
                 <tr>
                     {% for key in header %}

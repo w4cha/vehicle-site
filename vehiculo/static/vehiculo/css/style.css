@@ -4,10 +4,27 @@
     --button-text: #ffffff;
 }
 
-#change_target {
-    top: 20%;
+dialog {
     border-color: black;
     border-width: 3px;
+}
+
+.pointer-obj {
+    cursor: pointer;
+}
+
+#image-target-dialog{
+    position: fixed;
+    top: 5%;
+    height: clamp(70vh, 80vh, 90vh);
+}
+
+#target-img {
+    width: clamp(40vw, 50vw, 60vw);
+  }
+
+#change_target {
+    top: 20%;
 }
 
 #edit_vehicle {
@@ -54,8 +71,3 @@
     padding: 15px;
   }
 
-  #búsqueda {
-    position: absolute;
-    top: 11%;
-    right: 1%;
-  }

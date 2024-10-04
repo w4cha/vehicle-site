@@ -57,3 +57,11 @@ async function delete_resource(value, type) {
         window.location.href = answer;
     }
 }
+
+function expand(identifier) {
+    let target_content = document.getElementById(identifier);
+    let target = document.getElementById("target-img");
+    target.src = target_content.src;
+    target.alt = target_content.alt;
+    document.getElementById("image-target-dialog").show(); 
+}

@@ -36,12 +36,16 @@ Galería imágenes
         <h1 class="text-center">
             Galería de imágenes
         </h1>
+        <dialog id="image-target-dialog">
+            <button class="cerrar" onclick="document.getElementById('image-target-dialog').close();">X</button>
+            <div class="h-100 w-100 overflow-auto">
+                <img id="target-img" class="border border-secondary border-4">
+            </div>
+        </dialog>
         <div class="d-flex flex-row justify-content-evenly flex-wrap">
             {% for entry in gallery %}
             <div class="gallery">
-                <a target="_blank" href="{{ entry.imágenes.url }}">
-                    <img src="{{ entry.imágenes.url }}" alt="{{ entry.imágenes.name }}" width="600" height="400">
-                </a>
+                <img src="{{ entry.imágenes.url }}" alt="{{ entry.imágenes.name }}" id="{{ entry.id }}" width="600" height="400" onclick="expand(this.id)" class="rounded pointer-obj">
                 <div class="text-center">
                     <div class="desc">{{ entry.descripción }}</div>
                     {% if perms.vehiculo.delete_vehículogalería %}
