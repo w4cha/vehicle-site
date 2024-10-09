@@ -9,6 +9,18 @@ dialog {
     border-width: 3px;
 }
 
+/** table with vertical scrolling **/
+table {
+    display: block;
+    height: 270px;
+    width: fit-content !important;
+    overflow-y: auto;
+}
+
+tbody {
+    max-height: 300px;
+}
+
 .pointer-obj {
     cursor: pointer;
 }

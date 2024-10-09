@@ -159,7 +159,7 @@ class NewUser(SuccessMessageMixin, CreateView):
         valid = super().form_valid(form)
         # group do not have a codename unlike permissions
         try:
-            permission_group = Group.objects.get(name="usuario general")
+            permission_group = Group.objects.get(name="usuario")
         except Group.DoesNotExist:
             pass
         else:
