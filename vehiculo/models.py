@@ -53,8 +53,6 @@ class Vehículo(models.Model):
     def save(self, *args, **kwargs):
         self.marca = string.capwords(self.marca)
         self.modelo = string.capwords(self.modelo)
-        self.carrocería = self.carrocería.upper()
-        self.motor = self.motor.upper()
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
