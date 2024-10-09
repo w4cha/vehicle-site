@@ -16,4 +16,5 @@ urlpatterns = [
     path("delete/<int:pk>", views.delete_vehiculo, name="delete"),
     path("gallery/<int:pk>", views.gallery_view, name="gallery"),
     path("del-img/<int:pk>", views.delete_img, name="rm-img"),
+    path("download/<str:query>", views.download_csv, name="vehicle_csv"),
 ]

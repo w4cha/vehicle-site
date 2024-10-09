@@ -11,3 +11,5 @@
 *.jpg
 *.gif
 *.png
+# env vars
+*.env

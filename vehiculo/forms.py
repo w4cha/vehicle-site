@@ -31,7 +31,6 @@ class VehicleForm(forms.ModelForm):
     # y que el valor default en html <select> sea el que queramos
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["marca"].initial = "3"
         self.fields["categoría"].initial = "P"
     
     class Meta:

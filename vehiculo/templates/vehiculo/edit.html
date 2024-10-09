@@ -1,7 +1,7 @@
 <div class="d-flex flex-column align-items-center" id="edit_vehicle">
     <button class="cerrar" onclick="document.getElementById('change_target').close();">X</button>
     <h1>Actualizar</h1>
-    <form method="POST" class="d-flex flex-column align-items-start" id="table_action">
+    <form hx-post="{% url 'vehiculo:update' pk=form.instance.pk %}"  hx-target="#change_target" hx-swap="innerHTML" class="d-flex flex-column align-items-start" id="table_action">
         <!-- token seguridad -->
         {% csrf_token %}
         <!-- itera sobre los elementos de la form de django -->
@@ -22,8 +22,8 @@
             {% endif %}
         </div>
         {% endfor %}
+        <div class="align-self-center">
+            <button class="btn btn-secondary btn-lg">Actualizar</button>
+        </div>
     </form>
-    <div class="align-self-center">
-        <button onclick="send_data('{{ form.instance.pk }}');" class="btn btn-secondary btn-lg">Actualizar</button>
-    </div>
 </div>

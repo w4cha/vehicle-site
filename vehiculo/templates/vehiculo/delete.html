@@ -1,5 +1,5 @@
 <button class="cerrar" onclick="document.getElementById('change_target').close();">X</button>
-<div class="align-self-center d-flex flex-column" id="delete_vehicle">
+<div class="align-self-center d-flex flex-column text-center" id="delete_vehicle">
     <h6>Presione el botón para confirmar</h6>
-    <button class="btn btn-secondary btn-md limit" onclick="delete_resource('{{ entry }}', 'delete');">Borrar</button>
+    <button class="btn btn-secondary btn-md limit" hx-delete="{% url 'vehiculo:delete' pk=entry %}">Borrar</button>
 </div>

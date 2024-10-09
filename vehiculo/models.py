@@ -1,5 +1,6 @@
 
 # Create your models here.
+import string
 from django.db import models
 from django.core.validators import MaxValueValidator
 from django.core.validators import FileExtensionValidator
@@ -18,17 +19,9 @@ class Vehículo(models.Model):
         CARGA: "Carga",
     }
 
-    # si son int hay conflicto con el Charfield ya que espera str
-    MARKS = {"1": "Chevrolet", 
-             "2": "Fiat", 
-             "3": "Ford", 
-             "4": "Toyota",}
-        
-    
+    marca = models.CharField(verbose_name="marca vehículo", max_length=40, null=False)
 
-    marca = models.CharField(verbose_name="marca vehículo", max_length=20, null=False, choices=MARKS, default=MARKS["3"])
-
-    modelo = models.CharField(verbose_name="modelo vehículo", max_length=100, null=False)
+    modelo = models.CharField(verbose_name="modelo vehículo", max_length=100, null=False, blank=False)
 
     carrocería = models.CharField(verbose_name="serial de carrocería", max_length=100, null=False, unique=True)
 
@@ -39,7 +32,7 @@ class Vehículo(models.Model):
     
     precio = models.PositiveIntegerField(verbose_name="precio vehículo", null=False, 
                                              validators=[MaxValueValidator(500_000, message="valor debe ser menor o igual a %(limit_value)s")],
-                                             help_text="precios entre 0 a 500000")
+                                             help_text="precios entre 0 a 500.000")
     
     creación = models.DateTimeField(verbose_name="fecha creación", auto_now_add=True, editable=False)
 
@@ -54,9 +47,14 @@ class Vehículo(models.Model):
                 "Puede ver la lista de vehículos disponibles",
             )
         ]
+    
+    def save(self, *args, **kwargs):
+        self.marca = string.capwords(self.marca)
+        self.modelo = string.capwords(self.modelo)
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return (f"Marca: {self.get_marca_display()}, Modelo: {self.modelo}, Carrocería: {self.carrocería}, "
+        return (f"Marca: {self.marca}, Modelo: {self.modelo}, Carrocería: {self.carrocería}, "
                 f"Motor: {self.motor}")
 
 

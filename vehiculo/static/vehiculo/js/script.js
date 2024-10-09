@@ -1,67 +1,21 @@
-// required to make async calls or on method that expect a server response
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-async function get_form(action, pk) {
-    // the initial slash is required
-    let request = await fetch(`/vehiculo/${action}/${Number(pk)}`, { method: "GET", credentials: 'same-origin',
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-        }});
-    let answer = await request.text();
-    if (request.ok) {
-        document.getElementById("change_target").innerHTML = answer;
-        document.getElementById("change_target").show();
-    }
-}
-
-async function send_data(pk) {
-    // the last part is the id
-    let form = document.forms.table_action;
-    let form_data = new FormData(form);
-    let request = await fetch("/vehiculo/update/" + Number(pk), { method: "POST", credentials: 'same-origin',
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-        },
-    body: form_data,});
-    let answer = await request.text();
-    if (request.status == 200) {
-        document.getElementById("change_target").innerHTML = answer;
-    } else if (request.status == 302) {
-        window.location.href = answer;
-    }
-}
-
-
-async function delete_resource(value, type) {
-    let request = await fetch(`/vehiculo/${type}/` + Number(value), { method: "POST", credentials: 'same-origin',
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-        },}) 
-    // simple delete view redirecting
-    let answer = await request.text();
-    if (request.status == 302) {
-        window.location.href = answer;
-    }
-}
-
 function expand(identifier) {
     let target_content = document.getElementById(identifier);
     let target = document.getElementById("target-img");
     target.src = target_content.src;
     target.alt = target_content.alt;
-    document.getElementById("image-target-dialog").show(); 
+    let current_value = Number(target_content.id.split("-").at(-1));
+    let element_array = document.querySelectorAll(".next-img");
+    let total_elements = document.querySelectorAll(".gallery").length;
+    if (element_array.length === 2 && !Number.isNaN(current_value)) {
+        element_array[0].id = `left--imagen-${current_value - 1 > 0 ? current_value - 1 : total_elements}`;
+        element_array[1].id = `right--imagen-${current_value + 1 > total_elements ? 1 : current_value + 1}`;
+    }
+    let state = document.getElementById("image-target-dialog"); 
+    if (!state.open) {
+        state.show();
+    }
+}
+
+function next_img(operand) {
+    expand(operand.split("--").at(-1));
 }
