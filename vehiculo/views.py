@@ -55,7 +55,6 @@ class VehicleList(PermissionRequiredMixin, generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # django creates an aditional field to the model related to this one
-        print([field.name for field in Vehículo._meta.get_fields()])
         # with related_name set the relation in vehículo to vehículogalería
         # changes from vehículogalería to vehículos
         context["header"] = [field.verbose_name for field in Vehículo._meta.get_fields()
