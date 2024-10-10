@@ -16,6 +16,14 @@ Agregar Vehículo
     </div>
     <h1>Nueva Entrada</h1>
     <form method="POST" class="d-flex flex-column align-items-start">
+        <!--non_field_errors is a list of errors-->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger text-center" role="alert">
+                {% for non_error in form.non_field_errors %}
+                    {{ non_error }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
         <!-- token seguridad -->
         {% csrf_token %}
         <!-- itera sobre los elementos de la form de django -->

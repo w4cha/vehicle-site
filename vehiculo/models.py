@@ -2,6 +2,7 @@
 # Create your models here.
 import string
 from django.db import models
+from django.db.models.functions import Upper
 from django.core.validators import MaxValueValidator
 from django.core.validators import FileExtensionValidator
 
@@ -23,9 +24,9 @@ class Vehículo(models.Model):
 
     modelo = models.CharField(verbose_name="modelo vehículo", max_length=100, null=False, blank=False)
 
-    carrocería = models.CharField(verbose_name="serial de carrocería", max_length=100, null=False, unique=True)
+    carrocería = models.CharField(verbose_name="serial de carrocería", max_length=100, null=False)
 
-    motor = models.CharField(verbose_name="serial de motor", max_length=50, null=False, unique=True)
+    motor = models.CharField(verbose_name="serial de motor", max_length=50, null=False)
 
     categoría = models.CharField(verbose_name="categoría vehículo", max_length=20, null=False, choices=ACCEPTED_CATEGORIES, 
                                  default=ACCEPTED_CATEGORIES[PARTICULAR])
@@ -49,10 +50,27 @@ class Vehículo(models.Model):
             (   "descargar_tabla",
                 "Puede descargar la lista de vehículos"),
         ]
+
+        constraints = [
+        models.UniqueConstraint(Upper("carrocería"), 
+                                name='unique carrocería upper',
+                                violation_error_message='La serial de carrocería que intenta ingresar ya existe'),
+        models.UniqueConstraint(Upper("motor"), 
+                                name='unique motor upper',
+                                violation_error_message='La serial de motor que intenta ingresar ya existe'),
+        ]
     
     def save(self, *args, **kwargs):
+        # only do this if the proper checks are in place 
+        # can't do this freely if the field is unique
+        # without adding extra constraints you may end
+        # up with a lower case entry being turned into 
+        # upper before saving but if the upper version is already
+        # in the database an error is going to be trigger
         self.marca = string.capwords(self.marca)
         self.modelo = string.capwords(self.modelo)
+        self.carrocería = self.carrocería.upper()
+        self.motor = self.motor.upper()
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -62,7 +80,7 @@ class Vehículo(models.Model):
 
 class VehículoGalería(models.Model):
 
-    vehículo = models.ForeignKey(Vehículo, on_delete=models.CASCADE)
+    vehículo = models.ForeignKey(Vehículo, on_delete=models.CASCADE, related_name="vehículos")
 
     descripción = models.CharField(verbose_name="descripción imagen", max_length=150, null=False, error_messages="solo hasta 150 caracteres")
 
